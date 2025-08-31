@@ -1,3 +1,7 @@
+## 13.2.0
+
+* Add get health data by UUID (see `getHealthDataByUUID()`)
+
 ## 13.1.4
 
 * Fix adding mindfulness resulted in crash in iOS
