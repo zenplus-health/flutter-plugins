@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Handler
 import android.util.Log
 import androidx.health.connect.client.HealthConnectClient
+import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.*
 import androidx.health.connect.client.request.AggregateGroupByDurationRequest
 import androidx.health.connect.client.request.AggregateRequest
@@ -53,7 +54,14 @@ class HealthDataReader(
 
         scope.launch {
             try {
-                HealthConstants.mapToType[dataType]?.let { classType ->
+                val grantedPermissions = healthConnectClient.permissionController.getGrantedPermissions()
+
+                val authorizedTypeMap = HealthConstants.mapToType.filter { (typeKey, classType) ->
+                    val requiredPermission = HealthPermission.getReadPermission(classType)
+                    grantedPermissions.contains(requiredPermission)
+                }
+
+                authorizedTypeMap[dataType]?.let { classType ->
                     val records = mutableListOf<Record>()
 
                     // Set up the initial request to read health records
@@ -106,7 +114,7 @@ class HealthDataReader(
                     "Unable to return $dataType due to the following exception:"
                 )
                 Log.e("FLUTTER_HEALTH::ERROR", Log.getStackTraceString(e))
-                result.success(null)
+                result.success(emptyList<Map<String, Any?>>()) // Return empty list instead of null
             }
         }
     }
