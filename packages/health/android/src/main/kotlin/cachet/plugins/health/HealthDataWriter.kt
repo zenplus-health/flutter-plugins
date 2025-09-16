@@ -35,7 +35,7 @@ class HealthDataWriter(
         val endTime = call.argument<Long>("endTime")!!
         val value = call.argument<Double>("value")!!
         val clientRecordId: String? = call.argument("clientRecordId")
-        val clientRecordVersion: Long? = call.argument("clientRecordVersion")
+        val clientRecordVersion: Double? = call.argument<Double>("clientRecordVersion")
         val recordingMethod = call.argument<Int>("recordingMethod")!!
 
         Log.i(
@@ -47,7 +47,7 @@ class HealthDataWriter(
                 if ((clientRecordId != null) && (clientRecordVersion != null)) {
                     Metadata(
                             clientRecordId = clientRecordId,
-                            clientRecordVersion = clientRecordVersion,
+                            clientRecordVersion = clientRecordVersion.toLong(),
                             recordingMethod = recordingMethod
                     )
                 } else {
@@ -183,7 +183,7 @@ class HealthDataWriter(
         val startTime = Instant.ofEpochMilli(call.argument<Long>("startTime")!!)
         val recordingMethod = call.argument<Int>("recordingMethod")!!
         val clientRecordId: String? = call.argument<String>("clientRecordId")
-        val clientRecordVersion: Long? = call.argument<Long>("clientRecordVersion")
+        val clientRecordVersion: Double? = call.argument<Double>("clientRecordVersion")
 
         scope.launch {
             try {
@@ -191,7 +191,7 @@ class HealthDataWriter(
                         if ((clientRecordId != null) && (clientRecordVersion != null)) {
                             Metadata(
                                     clientRecordId = clientRecordId,
-                                    clientRecordVersion = clientRecordVersion,
+                                    clientRecordVersion = clientRecordVersion.toLong(),
                                     recordingMethod = recordingMethod
                             )
                         } else {
@@ -306,7 +306,7 @@ class HealthDataWriter(
         val name = call.argument<String>("name")
         val mealType = call.argument<String>("meal_type")!!
         val clientRecordId: String? = call.argument<String>("clientRecordId")
-        val clientRecordVersion: Long? = call.argument<Long>("clientRecordVersion")
+        val clientRecordVersion: Double? = call.argument<Double>("clientRecordVersion")
 
         scope.launch {
             try {
@@ -314,7 +314,7 @@ class HealthDataWriter(
                         if ((clientRecordId != null) && (clientRecordVersion != null)) {
                             Metadata(
                                     clientRecordId = clientRecordId,
-                                    clientRecordVersion = clientRecordVersion
+                                    clientRecordVersion = clientRecordVersion.toLong()
                             )
                         } else {
                             Metadata()

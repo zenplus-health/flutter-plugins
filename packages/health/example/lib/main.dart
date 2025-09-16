@@ -262,11 +262,12 @@ class HealthAppState extends State<HealthApp> {
         endTime: now,
         recordingMethod: RecordingMethod.manual);
     success &= await health.writeHealthData(
-      value: 200,
-      type: HealthDataType.ACTIVE_ENERGY_BURNED,
-      startTime: earlier,
-      endTime: now,
-    );
+        value: 200,
+        type: HealthDataType.ACTIVE_ENERGY_BURNED,
+        startTime: earlier,
+        endTime: now,
+        clientRecordId: "uniqueID1234",
+        clientRecordVersion: 1);
     success &= await health.writeHealthData(
         value: 70,
         type: HealthDataType.HEART_RATE,
@@ -330,12 +331,15 @@ class HealthAppState extends State<HealthApp> {
       totalEnergyBurned: 400,
     );
     success &= await health.writeBloodPressure(
-      systolic: 90,
-      diastolic: 80,
-      startTime: now,
-    );
+        systolic: 90,
+        diastolic: 80,
+        startTime: now,
+        clientRecordId: "uniqueID1234",
+        clientRecordVersion: 2);
     success &= await health.writeMeal(
         mealType: MealType.SNACK,
+        clientRecordId: "uniqueID1234",
+        clientRecordVersion: 1.4,
         startTime: earlier,
         endTime: now,
         caloriesConsumed: 1000,
@@ -682,6 +686,13 @@ class HealthAppState extends State<HealthApp> {
                         child: const Text("Delete Data",
                             style: TextStyle(color: Colors.white))),
                     TextButton(
+                        onPressed: testDeleteByClientRecordId,
+                        style: const ButtonStyle(
+                            backgroundColor:
+                                WidgetStatePropertyAll(Colors.red)),
+                        child: const Text("Test Delete by Client ID",
+                            style: TextStyle(color: Colors.white))),
+                    TextButton(
                         onPressed: fetchStepData,
                         style: const ButtonStyle(
                             backgroundColor:
@@ -837,7 +848,8 @@ class HealthAppState extends State<HealthApp> {
                 return ListTile(
                   title: Text("${p.typeString}: ${p.value}"),
                   trailing: Text(p.unitString),
-                  subtitle: Text('${p.dateFrom} - ${p.dateTo}\n${p.recordingMethod}'),
+                  subtitle:
+                      Text('${p.dateFrom} - ${p.dateTo}\n${p.recordingMethod}'),
                   onTap: () {
                     fetchDataByUUID(
                       context,
