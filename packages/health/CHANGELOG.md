@@ -1,6 +1,13 @@
 ## 13.2.0
 
-* Add get health data by UUID (see `getHealthDataByUUID()`)
+* Add get health data by UUID (see `getHealthDataByUUID()`) - PR [#1193](https://github.com/carp-dk/flutter-plugins/pull/1193), [#1194](https://github.com/carp-dk/flutter-plugins/pull/1194)
+* Add delete by UUID (`deleteByUUID()`)
+* Add support for unit conversion in `WeightRecord`, `HeightRecord`, `BodyTemperatureRecord`, and `BloodGlucoseRecord` - PR [#1212](https://github.com/carp-dk/flutter-plugins/pull/1223)
+* Update `compileSDK` to 36 - Fix [#1261](https://github.com/carp-dk/flutter-plugins/issues/1261)
+* Update Gradle to 8.9.1
+* Update `org.jetbrains.kotlin.android` to 2.1.0
+* Update `androidx.health.connect:connect-client` to 1.1.0-rc03
+* Update `device_info_plus` to 12.1.0 - Fix [#1264](https://github.com/carp-dk/flutter-plugins/issues/1264)
 
 ## 13.1.4
 

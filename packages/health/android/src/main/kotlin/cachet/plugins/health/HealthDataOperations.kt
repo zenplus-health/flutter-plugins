@@ -3,7 +3,6 @@ package cachet.plugins.health
 import android.util.Log
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.HealthConnectFeatures
-import androidx.health.connect.client.feature.ExperimentalFeatureAvailabilityApi
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.permission.HealthPermission.Companion.PERMISSION_READ_HEALTH_DATA_HISTORY
 import androidx.health.connect.client.permission.HealthPermission.Companion.PERMISSION_READ_HEALTH_DATA_IN_BACKGROUND
@@ -103,7 +102,6 @@ class HealthDataOperations(
      * @param call Method call from Flutter (unused)
      * @param result Flutter result callback returning boolean availability status
      */
-    @OptIn(ExperimentalFeatureAvailabilityApi::class)
     fun isHealthDataHistoryAvailable(call: MethodCall, result: Result) {
         scope.launch {
             result.success(
@@ -139,7 +137,6 @@ class HealthDataOperations(
      * @param call Method call from Flutter (unused)
      * @param result Flutter result callback returning boolean availability status
      */
-    @OptIn(ExperimentalFeatureAvailabilityApi::class)
     fun isHealthDataInBackgroundAvailable(call: MethodCall, result: Result) {
         scope.launch {
             result.success(

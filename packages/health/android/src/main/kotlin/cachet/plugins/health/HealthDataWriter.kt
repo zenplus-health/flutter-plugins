@@ -3,6 +3,7 @@ package cachet.plugins.health
 import android.util.Log
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.records.*
+import androidx.health.connect.client.records.metadata.Device
 import androidx.health.connect.client.records.metadata.Metadata
 import androidx.health.connect.client.units.*
 import io.flutter.plugin.common.MethodCall
@@ -21,6 +22,74 @@ class HealthDataWriter(
         private val scope: CoroutineScope
 ) {
 
+    // Maps incoming recordingMethod int -> Metadata factory method.
+    // 0: unknown, 1: manual, 2: auto, 3: active (default unknown for others)
+    private fun buildMetadata(
+        recordingMethod: Int,
+        clientRecordId: String? = null,
+        clientRecordVersion: Long? = null,
+        deviceType: Int? = null,
+    ): Metadata {
+        // Device is required for auto/active; optional for manual/unknown
+        val deviceForAutoOrActive =
+            when (recordingMethod) {
+                RECORDING_METHOD_AUTOMATICALLY_RECORDED,
+                RECORDING_METHOD_ACTIVELY_RECORDED ->
+                    Device(type = deviceType ?: Device.TYPE_UNKNOWN)
+                else -> null
+            }
+
+                return when (recordingMethod) {
+                        RECORDING_METHOD_MANUAL_ENTRY -> {
+                                if (clientRecordId != null && clientRecordVersion != null) {
+                                        Metadata.manualEntry(
+                                                device = null,
+                                                clientRecordId = clientRecordId,
+                                                clientRecordVersion = clientRecordVersion,
+                                        )
+                                } else {
+                                        Metadata.manualEntry()
+                                }
+                        }
+                        RECORDING_METHOD_AUTOMATICALLY_RECORDED -> {
+                                val dev = deviceForAutoOrActive!!
+                                if (clientRecordId != null && clientRecordVersion != null) {
+                                        Metadata.autoRecorded(
+                                                device = dev,
+                                                clientRecordId = clientRecordId,
+                                                clientRecordVersion = clientRecordVersion,
+                                        )
+                                } else {
+                                        Metadata.autoRecorded(dev)
+                                }
+                        }
+                        RECORDING_METHOD_ACTIVELY_RECORDED -> {
+                                val dev = deviceForAutoOrActive!!
+                                if (clientRecordId != null && clientRecordVersion != null) {
+                                        Metadata.activelyRecorded(
+                                                device = dev,
+                                                clientRecordId = clientRecordId,
+                                                clientRecordVersion = clientRecordVersion,
+                                        )
+                                } else {
+                                        Metadata.activelyRecorded(dev)
+                                }
+                        }
+                        else -> { // unknown
+                                if (clientRecordId != null && clientRecordVersion != null) {
+                                        Metadata.unknownRecordingMethod(
+                                                device = null,
+                                                clientRecordId = clientRecordId,
+                                                clientRecordVersion = clientRecordVersion,
+                                        )
+                                } else {
+                                        Metadata.unknownRecordingMethod()
+                                }
+                        }
+        }
+    }
+
+
     /**
      * Writes a single health data record to Health Connect. Supports most basic health metrics with
      * automatic type conversion and validation.
@@ -37,22 +106,19 @@ class HealthDataWriter(
         val clientRecordId: String? = call.argument("clientRecordId")
         val clientRecordVersion: Double? = call.argument<Double>("clientRecordVersion")
         val recordingMethod = call.argument<Int>("recordingMethod")!!
+        val deviceType: Int? = call.argument<Int>("deviceType")
 
         Log.i(
                 "FLUTTER_HEALTH",
                 "Writing data for $type between $startTime and $endTime, value: $value, recording method: $recordingMethod"
         )
 
-        val metadata: Metadata =
-                if ((clientRecordId != null) && (clientRecordVersion != null)) {
-                    Metadata(
-                            clientRecordId = clientRecordId,
-                            clientRecordVersion = clientRecordVersion.toLong(),
-                            recordingMethod = recordingMethod
-                    )
-                } else {
-                    Metadata(recordingMethod = recordingMethod)
-                }
+        val metadata: Metadata = buildMetadata(
+            recordingMethod = recordingMethod,
+            clientRecordId = clientRecordId,
+            clientRecordVersion = clientRecordVersion?.toLong(),
+            deviceType = deviceType,
+        )
 
         val record = createRecord(type, startTime, endTime, value, metadata)
 
@@ -91,6 +157,8 @@ class HealthDataWriter(
         val totalEnergyBurned = call.argument<Int>("totalEnergyBurned")
         val totalDistance = call.argument<Int>("totalDistance")
         val recordingMethod = call.argument<Int>("recordingMethod")!!
+        val deviceType: Int? = call.argument<Int>("deviceType")
+        val workoutMetadata = buildMetadata(recordingMethod = recordingMethod, deviceType = deviceType)
 
         if (!HealthConstants.workoutTypeMap.containsKey(type)) {
             result.success(false)
@@ -114,10 +182,7 @@ class HealthDataWriter(
                                 endZoneOffset = null,
                                 exerciseType = workoutType,
                                 title = title,
-                                metadata =
-                                        Metadata(
-                                                recordingMethod = recordingMethod,
-                                        ),
+                                metadata = workoutMetadata,
                         ),
                 )
 
@@ -130,10 +195,7 @@ class HealthDataWriter(
                                     endTime = endTime,
                                     endZoneOffset = null,
                                     distance = Length.meters(totalDistance.toDouble()),
-                                    metadata =
-                                            Metadata(
-                                                    recordingMethod = recordingMethod,
-                                            ),
+                                    metadata = workoutMetadata,
                             ),
                     )
                 }
@@ -147,10 +209,7 @@ class HealthDataWriter(
                                     endTime = endTime,
                                     endZoneOffset = null,
                                     energy = Energy.kilocalories(totalEnergyBurned.toDouble()),
-                                    metadata =
-                                            Metadata(
-                                                    recordingMethod = recordingMethod,
-                                            ),
+                                    metadata = workoutMetadata,
                             ),
                     )
                 }
@@ -184,19 +243,16 @@ class HealthDataWriter(
         val recordingMethod = call.argument<Int>("recordingMethod")!!
         val clientRecordId: String? = call.argument<String>("clientRecordId")
         val clientRecordVersion: Double? = call.argument<Double>("clientRecordVersion")
+        val deviceType: Int? = call.argument<Int>("deviceType")
 
         scope.launch {
             try {
-                val metadata: Metadata =
-                        if ((clientRecordId != null) && (clientRecordVersion != null)) {
-                            Metadata(
-                                    clientRecordId = clientRecordId,
-                                    clientRecordVersion = clientRecordVersion.toLong(),
-                                    recordingMethod = recordingMethod
-                            )
-                        } else {
-                            Metadata(recordingMethod = recordingMethod)
-                        }
+                val metadata: Metadata = buildMetadata(
+                    recordingMethod = recordingMethod,
+                    clientRecordId = clientRecordId,
+                    clientRecordVersion = clientRecordVersion?.toLong(),
+                    deviceType = deviceType,
+                )
                 healthConnectClient.insertRecords(
                         listOf(
                                 BloodPressureRecord(
@@ -263,68 +319,67 @@ class HealthDataWriter(
         val startTime = Instant.ofEpochMilli(call.argument<Long>("start_time")!!)
         val endTime = Instant.ofEpochMilli(call.argument<Long>("end_time")!!)
         val calories = call.argument<Double>("calories")
-        val protein = call.argument<Double>("protein") as Double?
-        val carbs = call.argument<Double>("carbs") as Double?
-        val fat = call.argument<Double>("fat") as Double?
-        val caffeine = call.argument<Double>("caffeine") as Double?
-        val vitaminA = call.argument<Double>("vitamin_a") as Double?
-        val b1Thiamine = call.argument<Double>("b1_thiamine") as Double?
-        val b2Riboflavin = call.argument<Double>("b2_riboflavin") as Double?
-        val b3Niacin = call.argument<Double>("b3_niacin") as Double?
-        val b5PantothenicAcid = call.argument<Double>("b5_pantothenic_acid") as Double?
-        val b6Pyridoxine = call.argument<Double>("b6_pyridoxine") as Double?
-        val b7Biotin = call.argument<Double>("b7_biotin") as Double?
-        val b9Folate = call.argument<Double>("b9_folate") as Double?
-        val b12Cobalamin = call.argument<Double>("b12_cobalamin") as Double?
-        val vitaminC = call.argument<Double>("vitamin_c") as Double?
-        val vitaminD = call.argument<Double>("vitamin_d") as Double?
-        val vitaminE = call.argument<Double>("vitamin_e") as Double?
-        val vitaminK = call.argument<Double>("vitamin_k") as Double?
-        val calcium = call.argument<Double>("calcium") as Double?
-        val chloride = call.argument<Double>("chloride") as Double?
-        val cholesterol = call.argument<Double>("cholesterol") as Double?
-        val chromium = call.argument<Double>("chromium") as Double?
-        val copper = call.argument<Double>("copper") as Double?
-        val fatUnsaturated = call.argument<Double>("fat_unsaturated") as Double?
-        val fatMonounsaturated = call.argument<Double>("fat_monounsaturated") as Double?
-        val fatPolyunsaturated = call.argument<Double>("fat_polyunsaturated") as Double?
-        val fatSaturated = call.argument<Double>("fat_saturated") as Double?
-        val fatTransMonoenoic = call.argument<Double>("fat_trans_monoenoic") as Double?
-        val fiber = call.argument<Double>("fiber") as Double?
-        val iodine = call.argument<Double>("iodine") as Double?
-        val iron = call.argument<Double>("iron") as Double?
-        val magnesium = call.argument<Double>("magnesium") as Double?
-        val manganese = call.argument<Double>("manganese") as Double?
-        val molybdenum = call.argument<Double>("molybdenum") as Double?
-        val phosphorus = call.argument<Double>("phosphorus") as Double?
-        val potassium = call.argument<Double>("potassium") as Double?
-        val selenium = call.argument<Double>("selenium") as Double?
-        val sodium = call.argument<Double>("sodium") as Double?
-        val sugar = call.argument<Double>("sugar") as Double?
-        val zinc = call.argument<Double>("zinc") as Double?
+        val protein = call.argument<Double>("protein")
+        val carbs = call.argument<Double>("carbs")
+        val fat = call.argument<Double>("fat")
+        val caffeine = call.argument<Double>("caffeine")
+        val vitaminA = call.argument<Double>("vitamin_a")
+        val b1Thiamine = call.argument<Double>("b1_thiamine")
+        val b2Riboflavin = call.argument<Double>("b2_riboflavin")
+        val b3Niacin = call.argument<Double>("b3_niacin")
+        val b5PantothenicAcid = call.argument<Double>("b5_pantothenic_acid")
+        val b6Pyridoxine = call.argument<Double>("b6_pyridoxine")
+        val b7Biotin = call.argument<Double>("b7_biotin")
+        val b9Folate = call.argument<Double>("b9_folate")
+        val b12Cobalamin = call.argument<Double>("b12_cobalamin")
+        val vitaminC = call.argument<Double>("vitamin_c")
+        val vitaminD = call.argument<Double>("vitamin_d")
+        val vitaminE = call.argument<Double>("vitamin_e")
+        val vitaminK = call.argument<Double>("vitamin_k")
+        val calcium = call.argument<Double>("calcium")
+        val chloride = call.argument<Double>("chloride")
+        val cholesterol = call.argument<Double>("cholesterol")
+        val chromium = call.argument<Double>("chromium")
+        val copper = call.argument<Double>("copper")
+        val fatUnsaturated = call.argument<Double>("fat_unsaturated")
+        val fatMonounsaturated = call.argument<Double>("fat_monounsaturated")
+        val fatPolyunsaturated = call.argument<Double>("fat_polyunsaturated")
+        val fatSaturated = call.argument<Double>("fat_saturated")
+        val fatTransMonoenoic = call.argument<Double>("fat_trans_monoenoic")
+        val fiber = call.argument<Double>("fiber")
+        val iodine = call.argument<Double>("iodine")
+        val iron = call.argument<Double>("iron")
+        val magnesium = call.argument<Double>("magnesium")
+        val manganese = call.argument<Double>("manganese")
+        val molybdenum = call.argument<Double>("molybdenum")
+        val phosphorus = call.argument<Double>("phosphorus")
+        val potassium = call.argument<Double>("potassium")
+        val selenium = call.argument<Double>("selenium")
+        val sodium = call.argument<Double>("sodium")
+        val sugar = call.argument<Double>("sugar")
+        val zinc = call.argument<Double>("zinc")
 
         val name = call.argument<String>("name")
         val mealType = call.argument<String>("meal_type")!!
+        val recordingMethod = call.argument<Int>("recordingMethod") ?: RECORDING_METHOD_MANUAL_ENTRY
         val clientRecordId: String? = call.argument<String>("clientRecordId")
         val clientRecordVersion: Double? = call.argument<Double>("clientRecordVersion")
+        val deviceType: Int? = call.argument<Int>("deviceType")
 
         scope.launch {
             try {
-                val metaData: Metadata =
-                        if ((clientRecordId != null) && (clientRecordVersion != null)) {
-                            Metadata(
-                                    clientRecordId = clientRecordId,
-                                    clientRecordVersion = clientRecordVersion.toLong()
-                            )
-                        } else {
-                            Metadata()
-                        }
+                val metadata: Metadata = buildMetadata(
+                    recordingMethod = recordingMethod,
+                    clientRecordId = clientRecordId,
+                    clientRecordVersion = clientRecordVersion?.toLong(),
+                    deviceType = deviceType,
+                )
                 val list = mutableListOf<Record>()
 
                 list.add(
                         NutritionRecord(
                                 name = name,
-                                metadata = metaData,
+                                metadata = metadata,
                                 energy = calories?.kilocalories,
                                 totalCarbohydrate = carbs?.grams,
                                 protein = protein?.grams,
@@ -408,6 +463,7 @@ class HealthDataWriter(
         val endTime = call.argument<Long>("endTime")!!
         val samples = call.argument<List<Map<String, Any>>>("samples")!!
         val recordingMethod = call.argument<Int>("recordingMethod")!!
+        val deviceType: Int? = call.argument<Int>("deviceType")
 
         scope.launch {
             try {
@@ -418,6 +474,8 @@ class HealthDataWriter(
                                     speed = Velocity.metersPerSecond(sample["speed"] as Double)
                             )
                         }
+                
+                val metadata = buildMetadata(recordingMethod, deviceType = deviceType)
 
                 val speedRecord =
                         SpeedRecord(
@@ -426,7 +484,7 @@ class HealthDataWriter(
                                 samples = speedSamples,
                                 startZoneOffset = null,
                                 endZoneOffset = null,
-                                metadata = Metadata(recordingMethod = recordingMethod),
+                                metadata = metadata,
                         )
 
                 healthConnectClient.insertRecords(listOf(speedRecord))
@@ -788,6 +846,12 @@ class HealthDataWriter(
         private const val WORKOUT = "WORKOUT"
         private const val NUTRITION = "NUTRITION"
         private const val SPEED = "SPEED"
+
+        // Recording method mapping expected from Flutter side
+        private const val RECORDING_METHOD_UNKNOWN = 0
+        private const val RECORDING_METHOD_MANUAL_ENTRY = 1
+        private const val RECORDING_METHOD_AUTOMATICALLY_RECORDED = 2
+        private const val RECORDING_METHOD_ACTIVELY_RECORDED = 3
 
         // Sleep types
         private const val SLEEP_ASLEEP = "SLEEP_ASLEEP"

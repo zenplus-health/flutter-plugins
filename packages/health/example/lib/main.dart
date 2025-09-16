@@ -686,13 +686,6 @@ class HealthAppState extends State<HealthApp> {
                         child: const Text("Delete Data",
                             style: TextStyle(color: Colors.white))),
                     TextButton(
-                        onPressed: testDeleteByClientRecordId,
-                        style: const ButtonStyle(
-                            backgroundColor:
-                                WidgetStatePropertyAll(Colors.red)),
-                        child: const Text("Test Delete by Client ID",
-                            style: TextStyle(color: Colors.white))),
-                    TextButton(
                         onPressed: fetchStepData,
                         style: const ButtonStyle(
                             backgroundColor:
