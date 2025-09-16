@@ -151,6 +151,7 @@ class HealthPlugin(private var channel: MethodChannel? = null) :
 
             // Reading data
             "getData" -> dataReader.getData(call, result)
+            "getDataByUUID" -> dataReader.getDataByUUID(call, result)
             "getIntervalData" -> dataReader.getIntervalData(call, result)
             "getAggregateData" -> dataReader.getAggregateData(call, result)
             "getTotalStepsInInterval" -> dataReader.getTotalStepsInInterval(call, result)
@@ -168,6 +169,7 @@ class HealthPlugin(private var channel: MethodChannel? = null) :
             // Deleting data
             "delete" -> dataOperations.deleteData(call, result)
             "deleteByUUID" -> dataOperations.deleteByUUID(call, result)
+            "deleteByClientRecordId" -> dataOperations.deleteByClientRecordId(call, result)
             else -> result.notImplemented()
         }
     }
