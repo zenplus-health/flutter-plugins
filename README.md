@@ -1,6 +1,6 @@
 # CARP Flutter plugins
 
-This repo contains the source code for Flutter first-party plugins developed by developers at the [Copenhagen Research Platform (CARP)](http://www.carp.dk/) at The Technical University of Denmark.
+This repo contains the source code for Flutter first-party plugins maintained by the [Copenhagen Research Platform (CARP)](http://www.carp.dk/) team at the Technical University of Denmark.
 Check the `packages` directory for all plugins.
 
 Flutter plugins enable access to platform-specific APIs using a platform channel. 
