@@ -866,7 +866,7 @@ enum RecordingMethod {
   manual;
 
   /// Create a [RecordingMethod] from an integer.
-  /// 0: unknown, 1: active, 2: automatic, 3: manual
+  /// 0: unknown, 1: manual, 2: automatic, 3: active
   /// If the integer is not in the range of 0-3, [RecordingMethod.unknown] is returned.
   /// This is used to align the recording method with the platform.
   static RecordingMethod fromInt(int? recordingMethod) {
@@ -874,11 +874,11 @@ enum RecordingMethod {
       case 0:
         return RecordingMethod.unknown;
       case 1:
-        return RecordingMethod.active;
+        return RecordingMethod.manual;
       case 2:
         return RecordingMethod.automatic;
       case 3:
-        return RecordingMethod.manual;
+        return RecordingMethod.active;
       default:
         return RecordingMethod.unknown;
     }
@@ -889,11 +889,11 @@ enum RecordingMethod {
     switch (this) {
       case RecordingMethod.unknown:
         return 0;
-      case RecordingMethod.active:
+      case RecordingMethod.manual:
         return 1;
       case RecordingMethod.automatic:
         return 2;
-      case RecordingMethod.manual:
+      case RecordingMethod.active:
         return 3;
     }
   }

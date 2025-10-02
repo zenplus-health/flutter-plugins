@@ -3,6 +3,13 @@
 * Add `MindfulnessSessionType` enum and `Health.writeMindfulnessSession()` API
 * Android: Write mindfulness sessions using native `MindfulnessSessionRecord`
 * Android: Expose mindfulness metadata when reading sessions and include new permissions mapping
+* **CRITICAL FIX**: Change default recording method for mindfulness sessions from `automatic` to `manual` 
+  - This ensures sessions appear in Google Fit's Journal tab instead of only app usage data
+  - Fixes Google Fit integration where mindfulness sessions were invisible in user timeline
+* **BREAKING FIX**: Correct `RecordingMethod` enum-to-integer mapping to match Android Health Connect constants
+  - `RecordingMethod.manual` now correctly maps to 1 (was 3)  
+  - `RecordingMethod.active` now correctly maps to 3 (was 1)
+  - This fixes metadata inconsistencies that could affect data categorization across health platforms
 * Example app: demonstrate the new mindfulness writer
 
 ## 13.2.0

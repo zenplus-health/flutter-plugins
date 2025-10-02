@@ -242,7 +242,7 @@ class HealthDataWriter(
         val title = call.argument<String>("title")
         val notes = call.argument<String>("notes")
         val recordingMethod =
-                call.argument<Int>("recordingMethod") ?: RECORDING_METHOD_AUTOMATICALLY_RECORDED
+                call.argument<Int>("recordingMethod") ?: RECORDING_METHOD_MANUAL_ENTRY
         val clientRecordId: String? = call.argument("clientRecordId")
         val clientRecordVersion: Double? = call.argument("clientRecordVersion")
         val deviceType: Int? = call.argument("deviceType")

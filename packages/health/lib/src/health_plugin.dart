@@ -610,7 +610,7 @@ class Health {
     required DateTime endTime,
     String? title,
     String? notes,
-    RecordingMethod recordingMethod = RecordingMethod.automatic,
+    RecordingMethod recordingMethod = RecordingMethod.manual,
     String? clientRecordId,
     double? clientRecordVersion,
     int? deviceType,
