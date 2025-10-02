@@ -1,7 +1,10 @@
+@file:OptIn(ExperimentalHealthConnectApi::class)
+
 package cachet.plugins.health
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import androidx.health.connect.client.ExperimentalHealthConnectApi
 import androidx.health.connect.client.feature.ExperimentalMindfulnessSessionApi
 import androidx.health.connect.client.records.*
 import androidx.health.connect.client.records.metadata.Metadata
