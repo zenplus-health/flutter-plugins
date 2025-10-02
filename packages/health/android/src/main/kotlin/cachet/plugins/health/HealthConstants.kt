@@ -3,13 +3,11 @@ package cachet.plugins.health
 import kotlin.reflect.KClass
 import androidx.health.connect.client.records.*
 import androidx.health.connect.client.records.MealType
-import androidx.health.connect.client.ExperimentalHealthConnectApi
 
 /**
  * Contains all data type mappings, health record classifications, and type conversions
  * used throughout the Health Connect integration.
  */
-@OptIn(ExperimentalHealthConnectApi::class)
 object HealthConstants {
     // Channel name
     const val CHANNEL_NAME = "flutter_health"

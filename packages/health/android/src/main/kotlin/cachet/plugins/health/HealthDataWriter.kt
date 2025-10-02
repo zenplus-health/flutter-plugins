@@ -2,7 +2,6 @@ package cachet.plugins.health
 
 import android.util.Log
 import androidx.health.connect.client.HealthConnectClient
-import androidx.health.connect.client.ExperimentalHealthConnectApi
 import androidx.health.connect.client.feature.ExperimentalMindfulnessSessionApi
 import androidx.health.connect.client.records.*
 import androidx.health.connect.client.records.metadata.Device
@@ -19,7 +18,6 @@ import kotlinx.coroutines.launch
  * specialized records like workouts and nutrition, and proper data type conversion from Flutter to
  * Health Connect format.
  */
-@OptIn(ExperimentalHealthConnectApi::class)
 class HealthDataWriter(
         private val healthConnectClient: HealthConnectClient,
         private val scope: CoroutineScope

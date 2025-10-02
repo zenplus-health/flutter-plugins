@@ -2,7 +2,6 @@ package cachet.plugins.health
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-import androidx.health.connect.client.ExperimentalHealthConnectApi
 import androidx.health.connect.client.feature.ExperimentalMindfulnessSessionApi
 import androidx.health.connect.client.records.*
 import androidx.health.connect.client.records.metadata.Metadata
@@ -12,7 +11,6 @@ import androidx.health.connect.client.records.metadata.Metadata
  * Handles the transformation of strongly-typed Health Connect data into generic maps
  * that can be serialized and passed to the Flutter layer.
  */
-@OptIn(ExperimentalHealthConnectApi::class)
 class HealthDataConverter {
     
     /**
