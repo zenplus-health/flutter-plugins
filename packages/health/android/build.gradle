@@ -34,9 +34,8 @@ android {
 
     kotlinOptions {
         jvmTarget = '17'
-        freeCompilerArgs += [
-                "-opt-in=androidx.health.connect.client.ExperimentalHealthConnectApi",
-                "-Xopt-in=kotlin.RequiresOptIn"
+        freeCompilerArgs = [
+                "-opt-in=androidx.health.connect.client.ExperimentalHealthConnectApi"
         ]
     }
 
