@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalHealthConnectApi::class)
-
 package cachet.plugins.health
 
 import android.util.Log
@@ -21,6 +19,7 @@ import kotlinx.coroutines.launch
  * specialized records like workouts and nutrition, and proper data type conversion from Flutter to
  * Health Connect format.
  */
+@OptIn(ExperimentalHealthConnectApi::class)
 class HealthDataWriter(
         private val healthConnectClient: HealthConnectClient,
         private val scope: CoroutineScope
