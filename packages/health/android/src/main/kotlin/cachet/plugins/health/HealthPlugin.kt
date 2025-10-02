@@ -159,6 +159,7 @@ class HealthPlugin(private var channel: MethodChannel? = null) :
             // Writing data
             "writeData" -> dataWriter.writeData(call, result)
             "writeWorkoutData" -> dataWriter.writeWorkoutData(call, result)
+            "writeMindfulnessSession" -> dataWriter.writeMindfulnessSession(call, result)
             "writeBloodPressure" -> dataWriter.writeBloodPressure(call, result)
             "writeBloodOxygen" -> dataWriter.writeBloodOxygen(call, result)
             "writeMenstruationFlow" -> dataWriter.writeMenstruationFlow(call, result)

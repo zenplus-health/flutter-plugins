@@ -1,5 +1,17 @@
 part of '../health.dart';
 
+/// Allows tests to override platform checks used within the [Health] plugin.
+@visibleForTesting
+class HealthPlatformOverrides {
+  static bool? isAndroid;
+  static bool? isIOS;
+
+  static void reset() {
+    isAndroid = null;
+    isIOS = null;
+  }
+}
+
 /// Main class for the Plugin.
 ///
 /// Use this class to get an instance of the Health plugin, like this:
@@ -44,6 +56,10 @@ class Health {
   HealthConnectSdkStatus _healthConnectSdkStatus =
       HealthConnectSdkStatus.sdkUnavailable;
 
+  bool get _isAndroid =>
+      HealthPlatformOverrides.isAndroid ?? Platform.isAndroid;
+  bool get _isIOS => HealthPlatformOverrides.isIOS ?? Platform.isIOS;
+
   /// Get an instance of the health plugin.
   Health({DeviceInfoPlugin? deviceInfo})
     : _deviceInfo = deviceInfo ?? DeviceInfoPlugin() {
@@ -54,7 +70,7 @@ class Health {
   HealthConnectSdkStatus get healthConnectSdkStatus => _healthConnectSdkStatus;
 
   /// The type of platform of this device.
-  HealthPlatformType get platformType => Platform.isIOS
+  HealthPlatformType get platformType => _isIOS
       ? HealthPlatformType.appleHealth
       : HealthPlatformType.googleHealthConnect;
 
@@ -66,13 +82,13 @@ class Health {
 
   /// Configure the health plugin. Must be called before using the plugin.
   Future<void> configure() async {
-    _deviceId = Platform.isAndroid
+    _deviceId = _isAndroid
         ? (await _deviceInfo.androidInfo).id
         : (await _deviceInfo.iosInfo).identifierForVendor;
   }
 
   /// Check if a given data type is available on the platform
-  bool isDataTypeAvailable(HealthDataType dataType) => Platform.isAndroid
+  bool isDataTypeAvailable(HealthDataType dataType) => _isAndroid
       ? dataTypeKeysAndroid.contains(dataType)
       : dataTypeKeysIOS.contains(dataType);
 
@@ -121,7 +137,7 @@ class Health {
         : permissions.map((permission) => permission.index).toList();
 
     /// On Android, if BMI is requested, then also ask for weight and height
-    if (Platform.isAndroid) _handleBMI(mTypes, mPermissions);
+    if (_isAndroid) _handleBMI(mTypes, mPermissions);
 
     return await _channel.invokeMethod('hasPermissions', {
       "types": mTypes.map((type) => type.name).toList(),
@@ -136,7 +152,7 @@ class Health {
   ///
   /// Android only. On iOS this does nothing.
   Future<void> revokePermissions() async {
-    if (Platform.isIOS) return;
+    if (_isIOS) return;
 
     await _checkIfHealthConnectAvailableOnAndroid();
     try {
@@ -153,7 +169,7 @@ class Health {
   ///
   /// Android only. Returns null on iOS or if an error occurs.
   Future<HealthConnectSdkStatus?> getHealthConnectSdkStatus() async {
-    if (Platform.isIOS) return null;
+    if (_isIOS) return null;
 
     try {
       final status = await _channel.invokeMethod<int>(
@@ -173,7 +189,7 @@ class Health {
   /// Is Google Health Connect available on this phone?
   ///
   /// Android only. Returns always true on iOS.
-  Future<bool> isHealthConnectAvailable() async => !Platform.isAndroid
+  Future<bool> isHealthConnectAvailable() async => !_isAndroid
       ? true
       : (await getHealthConnectSdkStatus() ==
             HealthConnectSdkStatus.sdkAvailable);
@@ -183,7 +199,7 @@ class Health {
   ///
   /// Android only. On iOS this does nothing.
   Future<void> installHealthConnect() async {
-    if (Platform.isIOS) return;
+    if (_isIOS) return;
 
     try {
       await _channel.invokeMethod('installHealthConnect');
@@ -196,7 +212,7 @@ class Health {
   /// if not.
   /// Internal methods used to check availability before any getter or setter methods.
   Future<void> _checkIfHealthConnectAvailableOnAndroid() async {
-    if (!Platform.isAndroid) return;
+    if (!_isAndroid) return;
 
     if (!(await isHealthConnectAvailable())) {
       throw UnsupportedError(
@@ -213,7 +229,7 @@ class Health {
   ///
   /// Android only. Returns false on iOS or if an error occurs.
   Future<bool> isHealthDataHistoryAvailable() async {
-    if (Platform.isIOS) return false;
+    if (_isIOS) return false;
 
     try {
       final status = await _channel.invokeMethod<bool>(
@@ -236,7 +252,7 @@ class Health {
   ///
   /// Android only. Returns true on iOS or false if an error occurs.
   Future<bool> isHealthDataHistoryAuthorized() async {
-    if (Platform.isIOS) return true;
+    if (_isIOS) return true;
 
     try {
       final status = await _channel.invokeMethod<bool>(
@@ -260,7 +276,7 @@ class Health {
   ///
   /// Android only. Returns true on iOS or false if an error occurs.
   Future<bool> requestHealthDataHistoryAuthorization() async {
-    if (Platform.isIOS) return true;
+    if (_isIOS) return true;
 
     await _checkIfHealthConnectAvailableOnAndroid();
     try {
@@ -283,7 +299,7 @@ class Health {
   ///
   /// Android only. Returns false on iOS or if an error occurs.
   Future<bool> isHealthDataInBackgroundAvailable() async {
-    if (Platform.isIOS) return false;
+    if (_isIOS) return false;
 
     try {
       final status = await _channel.invokeMethod<bool>(
@@ -306,7 +322,7 @@ class Health {
   ///
   /// Android only. Returns true on iOS or false if an error occurs.
   Future<bool> isHealthDataInBackgroundAuthorized() async {
-    if (Platform.isIOS) return true;
+    if (_isIOS) return true;
 
     try {
       final status = await _channel.invokeMethod<bool>(
@@ -330,7 +346,7 @@ class Health {
   ///
   /// Android only. Returns true on iOS or false if an error occurs.
   Future<bool> requestHealthDataInBackgroundAuthorization() async {
-    if (Platform.isIOS) return true;
+    if (_isIOS) return true;
 
     await _checkIfHealthConnectAvailableOnAndroid();
     try {
@@ -405,7 +421,7 @@ class Health {
         : permissions.map((permission) => permission.index).toList();
 
     // on Android, if BMI is requested, then also ask for weight and height
-    if (Platform.isAndroid) _handleBMI(mTypes, mPermissions);
+    if (_isAndroid) _handleBMI(mTypes, mPermissions);
 
     List<String> keys = mTypes.map((e) => e.name).toList();
     final bool? isAuthorized = await _channel.invokeMethod(
@@ -419,7 +435,7 @@ class Health {
   void _handleBMI(List<HealthDataType> mTypes, List<int> mPermissions) {
     final index = mTypes.indexOf(HealthDataType.BODY_MASS_INDEX);
 
-    if (index != -1 && Platform.isAndroid) {
+    if (index != -1 && _isAndroid) {
       if (!mTypes.contains(HealthDataType.WEIGHT)) {
         mTypes.add(HealthDataType.WEIGHT);
         mPermissions.add(mPermissions[index]);
@@ -517,7 +533,7 @@ class Health {
     RecordingMethod recordingMethod = RecordingMethod.automatic,
   }) async {
     await _checkIfHealthConnectAvailableOnAndroid();
-    if (Platform.isIOS &&
+    if (_isIOS &&
         [
           RecordingMethod.active,
           RecordingMethod.unknown,
@@ -544,7 +560,7 @@ class Health {
           HealthDataType.IRREGULAR_HEART_RATE_EVENT,
           HealthDataType.ELECTROCARDIOGRAM,
         }.contains(type) &&
-        Platform.isIOS) {
+        _isIOS) {
       throw ArgumentError(
         "$type - iOS does not support writing this data type in HealthKit",
       );
@@ -581,6 +597,64 @@ class Health {
     };
     bool? success = await _channel.invokeMethod('writeData', args);
     return success ?? false;
+  }
+
+  /// Writes a mindfulness session to the underlying health platform.
+  ///
+  /// On iOS, this delegates to [writeHealthData] with the existing
+  /// `HealthDataType.MINDFULNESS` support. On Android, this uses a dedicated
+  /// `MindfulnessSessionRecord` to capture native mindfulness metadata.
+  Future<bool> writeMindfulnessSession({
+    required MindfulnessSessionType type,
+    required DateTime startTime,
+    required DateTime endTime,
+    String? title,
+    String? notes,
+    RecordingMethod recordingMethod = RecordingMethod.automatic,
+    String? clientRecordId,
+    double? clientRecordVersion,
+    int? deviceType,
+  }) async {
+    await _checkIfHealthConnectAvailableOnAndroid();
+
+    if (startTime.isAfter(endTime)) {
+      throw ArgumentError('startTime must be equal or earlier than endTime');
+    }
+
+    if (_isIOS) {
+      final minutes = endTime.difference(startTime).inSeconds / 60.0;
+      return writeHealthData(
+        value: minutes,
+        type: HealthDataType.MINDFULNESS,
+        startTime: startTime,
+        endTime: endTime,
+        recordingMethod: recordingMethod,
+        clientRecordId: clientRecordId,
+        clientRecordVersion: clientRecordVersion,
+      );
+    }
+
+    if (_isAndroid) {
+      final arguments = <String, dynamic>{
+        'mindfulnessType': type.index,
+        'startTime': startTime.millisecondsSinceEpoch,
+        'endTime': endTime.millisecondsSinceEpoch,
+        'title': title,
+        'notes': notes,
+        'recordingMethod': recordingMethod.toInt(),
+        'clientRecordId': clientRecordId,
+        'clientRecordVersion': clientRecordVersion,
+        'deviceType': deviceType,
+      };
+
+      final success = await _channel.invokeMethod<bool>(
+        'writeMindfulnessSession',
+        arguments,
+      );
+      return success == true;
+    }
+
+    return false;
   }
 
   /// Deletes all records of the given [type] for a given period of time.
@@ -632,7 +706,7 @@ class Health {
       throw ArgumentError("UUID must not be empty.");
     }
 
-    if (Platform.isIOS && type == null) {
+    if (_isIOS && type == null) {
       throw ArgumentError(
         "On iOS, both UUID and type are required to delete a record.",
       );
@@ -684,7 +758,7 @@ class Health {
     RecordingMethod recordingMethod = RecordingMethod.automatic,
   }) async {
     await _checkIfHealthConnectAvailableOnAndroid();
-    if (Platform.isIOS &&
+    if (_isIOS &&
         [
           RecordingMethod.active,
           RecordingMethod.unknown,
@@ -729,7 +803,7 @@ class Health {
     RecordingMethod recordingMethod = RecordingMethod.automatic,
   }) async {
     await _checkIfHealthConnectAvailableOnAndroid();
-    if (Platform.isIOS &&
+    if (_isIOS &&
         [
           RecordingMethod.active,
           RecordingMethod.unknown,
@@ -743,7 +817,7 @@ class Health {
     }
     bool? success;
 
-    if (Platform.isIOS) {
+    if (_isIOS) {
       success = await writeHealthData(
         value: saturation,
         type: HealthDataType.BLOOD_OXYGEN,
@@ -751,7 +825,7 @@ class Health {
         endTime: endTime,
         recordingMethod: recordingMethod,
       );
-    } else if (Platform.isAndroid) {
+    } else if (_isAndroid) {
       Map<String, dynamic> args = {
         'value': saturation,
         'startTime': startTime.millisecondsSinceEpoch,
@@ -868,7 +942,7 @@ class Health {
     RecordingMethod recordingMethod = RecordingMethod.automatic,
   }) async {
     await _checkIfHealthConnectAvailableOnAndroid();
-    if (Platform.isIOS &&
+    if (_isIOS &&
         [
           RecordingMethod.active,
           RecordingMethod.unknown,
@@ -953,7 +1027,7 @@ class Health {
     RecordingMethod recordingMethod = RecordingMethod.automatic,
   }) async {
     await _checkIfHealthConnectAvailableOnAndroid();
-    if (Platform.isIOS &&
+    if (_isIOS &&
         [
           RecordingMethod.active,
           RecordingMethod.unknown,
@@ -961,9 +1035,7 @@ class Health {
       throw ArgumentError("recordingMethod must be manual or automatic on iOS");
     }
 
-    var value = Platform.isAndroid
-        ? MenstrualFlow.toHealthConnect(flow)
-        : flow.index;
+    var value = _isAndroid ? MenstrualFlow.toHealthConnect(flow) : flow.index;
 
     if (value == -1) {
       throw ArgumentError(
@@ -1023,7 +1095,7 @@ class Health {
     if (startTime.isAfter(endTime)) {
       throw ArgumentError("startTime must be equal or earlier than endTime");
     }
-    if (Platform.isAndroid) {
+    if (_isAndroid) {
       throw UnsupportedError("writeAudiogram is not supported on Android");
     }
 
@@ -1064,7 +1136,7 @@ class Health {
       throw ArgumentError("set a valid insulin delivery reason");
     }
 
-    if (Platform.isAndroid) {
+    if (_isAndroid) {
       throw UnsupportedError(
         "writeInsulinDelivery is not supported on Android",
       );
@@ -1102,7 +1174,7 @@ class Health {
     await _checkIfHealthConnectAvailableOnAndroid();
 
     // Ask for device ID only once
-    _deviceId ??= Platform.isAndroid
+    _deviceId ??= _isAndroid
         ? (await _deviceInfo.androidInfo).id
         : (await _deviceInfo.iosInfo).identifierForVendor;
 
@@ -1209,7 +1281,7 @@ class Health {
     HealthDataUnit? dataUnit,
   }) async {
     // Ask for device ID only once
-    _deviceId ??= Platform.isAndroid
+    _deviceId ??= _isAndroid
         ? (await _deviceInfo.androidInfo).id
         : (await _deviceInfo.iosInfo).identifierForVendor;
 
@@ -1222,7 +1294,7 @@ class Health {
     }
 
     // If BodyMassIndex is requested on Android, calculate this manually
-    if (dataType == HealthDataType.BODY_MASS_INDEX && Platform.isAndroid) {
+    if (dataType == HealthDataType.BODY_MASS_INDEX && _isAndroid) {
       return _computeAndroidBMI(startTime, endTime, recordingMethodsToFilter);
     }
     return await _dataQuery(
@@ -1243,7 +1315,7 @@ class Health {
     List<RecordingMethod> recordingMethodsToFilter,
   ) async {
     // Ask for device ID only once
-    _deviceId ??= Platform.isAndroid
+    _deviceId ??= _isAndroid
         ? (await _deviceInfo.androidInfo).id
         : (await _deviceInfo.iosInfo).identifierForVendor;
 
@@ -1273,7 +1345,7 @@ class Health {
     bool includeManualEntry,
   ) async {
     // Ask for device ID only once
-    _deviceId ??= Platform.isAndroid
+    _deviceId ??= _isAndroid
         ? (await _deviceInfo.androidInfo).id
         : (await _deviceInfo.iosInfo).identifierForVendor;
 
@@ -1510,7 +1582,7 @@ class Health {
     RecordingMethod recordingMethod = RecordingMethod.automatic,
   }) async {
     await _checkIfHealthConnectAvailableOnAndroid();
-    if (Platform.isIOS &&
+    if (_isIOS &&
         [
           RecordingMethod.active,
           RecordingMethod.unknown,
@@ -1519,12 +1591,12 @@ class Health {
     }
 
     // Check that value is on the current Platform
-    if (Platform.isIOS && !_isOnIOS(activityType)) {
+    if (_isIOS && !_isOnIOS(activityType)) {
       throw HealthException(
         activityType,
         "Workout activity type $activityType is not supported on iOS",
       );
-    } else if (Platform.isAndroid && !_isOnAndroid(activityType)) {
+    } else if (_isAndroid && !_isOnAndroid(activityType)) {
       throw HealthException(
         activityType,
         "Workout activity type $activityType is not supported on Android",

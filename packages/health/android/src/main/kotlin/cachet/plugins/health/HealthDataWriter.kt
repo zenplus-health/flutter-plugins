@@ -2,6 +2,7 @@ package cachet.plugins.health
 
 import android.util.Log
 import androidx.health.connect.client.HealthConnectClient
+import androidx.health.connect.client.feature.ExperimentalMindfulnessSessionApi
 import androidx.health.connect.client.records.*
 import androidx.health.connect.client.records.metadata.Device
 import androidx.health.connect.client.records.metadata.Metadata
@@ -224,6 +225,96 @@ class HealthDataWriter(
                 )
                 Log.w("FLUTTER_HEALTH::ERROR", e.message ?: "unknown error")
                 Log.w("FLUTTER_HEALTH::ERROR", e.stackTrace.toString())
+                result.success(false)
+            }
+        }
+    }
+
+    /**
+     * Writes a mindfulness session using Health Connect's dedicated MindfulnessSessionRecord.
+     * Ensures sessions are categorized correctly and supports metadata parity with other writers.
+     */
+    @OptIn(ExperimentalMindfulnessSessionApi::class)
+    fun writeMindfulnessSession(call: MethodCall, result: Result) {
+        val providedType =
+                call.argument<Int>("mindfulnessType")
+                        ?: HealthConstants.MINDFULNESS_SESSION_TYPE_UNKNOWN
+        val startTimeMillis = call.argument<Long>("startTime")
+        val endTimeMillis = call.argument<Long>("endTime")
+        val title = call.argument<String>("title")
+        val notes = call.argument<String>("notes")
+        val recordingMethod =
+                call.argument<Int>("recordingMethod") ?: RECORDING_METHOD_AUTOMATICALLY_RECORDED
+        val clientRecordId: String? = call.argument("clientRecordId")
+        val clientRecordVersion: Double? = call.argument("clientRecordVersion")
+        val deviceType: Int? = call.argument("deviceType")
+
+        if (startTimeMillis == null || endTimeMillis == null) {
+            Log.w(
+                    "FLUTTER_HEALTH::ERROR",
+                    "Mindfulness session missing start or end time arguments",
+            )
+            result.success(false)
+            return
+        }
+
+        if (endTimeMillis < startTimeMillis) {
+            Log.w(
+                    "FLUTTER_HEALTH::ERROR",
+                    "Mindfulness session end time occurs before start time",
+            )
+            result.success(false)
+            return
+        }
+
+        val sanitizedType =
+                when (providedType) {
+                    HealthConstants.MINDFULNESS_SESSION_TYPE_UNKNOWN,
+                    HealthConstants.MINDFULNESS_SESSION_TYPE_MEDITATION,
+                    HealthConstants.MINDFULNESS_SESSION_TYPE_BREATHING,
+                    HealthConstants.MINDFULNESS_SESSION_TYPE_MUSIC,
+                    HealthConstants.MINDFULNESS_SESSION_TYPE_MOVEMENT,
+                    HealthConstants.MINDFULNESS_SESSION_TYPE_UNGUIDED -> providedType
+                    else -> HealthConstants.MINDFULNESS_SESSION_TYPE_UNKNOWN
+                }
+
+        val metadata = buildMetadata(
+            recordingMethod = recordingMethod,
+            clientRecordId = clientRecordId,
+            clientRecordVersion = clientRecordVersion?.toLong(),
+            deviceType = deviceType,
+        )
+
+        val startTime = Instant.ofEpochMilli(startTimeMillis)
+        val endTime = Instant.ofEpochMilli(endTimeMillis)
+
+        scope.launch {
+            try {
+                val record = MindfulnessSessionRecord(
+                    startTime = startTime,
+                    startZoneOffset = null,
+                    endTime = endTime,
+                    endZoneOffset = null,
+                    metadata = metadata,
+                    mindfulnessSessionType = sanitizedType,
+                    title = title,
+                    notes = notes,
+                )
+
+                healthConnectClient.insertRecords(listOf(record))
+
+                Log.i(
+                    "FLUTTER_HEALTH::SUCCESS",
+                    "Mindfulness session written: type=$sanitizedType, " +
+                        "duration=${(endTimeMillis - startTimeMillis) / 1000}s, title=$title",
+                )
+                result.success(true)
+            } catch (e: Exception) {
+                Log.e(
+                    "FLUTTER_HEALTH::ERROR",
+                    "Failed to write mindfulness session: ${e.message}",
+                    e,
+                )
                 result.success(false)
             }
         }

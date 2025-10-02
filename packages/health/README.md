@@ -10,6 +10,7 @@ The plugin supports:
 - reading health data using the `getHealthDataFromTypes` method.
 - writing health data using the `writeHealthData` method.
 - writing workouts using the `writeWorkout` method.
+- writing mindfulness sessions using the `writeMindfulnessSession` method (native on Android, delegated on iOS).
 - writing meals on iOS (Apple Health) & Android using the `writeMeal` method.
 - writing audiograms on iOS using the `writeAudiogram` method.
 - writing blood pressure data using the `writeBloodPressure` method.
@@ -199,6 +200,14 @@ Below is a simplified flow of how to use the plugin.
   // on iOS only `RecordingMethod.automatic` and `RecordingMethod.manual` are supported
   // Android additionally supports `RecordingMethod.active` and `RecordingMethod.unknown`
   success &= await health.writeHealthData(10, HealthDataType.STEPS, now, now, recordingMethod: RecordingMethod.manual);
+
+  // write a mindfulness session with subtype support
+  success &= await health.writeMindfulnessSession(
+    type: MindfulnessSessionType.meditation,
+    startTime: now.subtract(const Duration(minutes: 10)),
+    endTime: now,
+    title: 'Morning meditation',
+  );
 
   // get the number of steps for today
   var midnight = DateTime(now.year, now.month, now.day);

@@ -117,10 +117,37 @@ enum HealthDataType {
 }
 
 /// Access types for Health Data.
-enum HealthDataAccess {
-  READ,
-  WRITE,
-  READ_WRITE,
+enum HealthDataAccess { READ, WRITE, READ_WRITE }
+
+/// Supported mindfulness session types across platforms.
+///
+/// These values map directly to Android's
+/// `MindfulnessSessionRecord.MINDFULNESS_SESSION_TYPE_*` constants while iOS
+/// treats all mindfulness sessions uniformly.
+enum MindfulnessSessionType {
+  /// Unknown or unspecified mindfulness session type.
+  /// Android value: MINDFULNESS_SESSION_TYPE_UNKNOWN (0)
+  unknown,
+
+  /// Meditation-focused mindfulness session.
+  /// Android value: MINDFULNESS_SESSION_TYPE_MEDITATION (1)
+  meditation,
+
+  /// Breathing-focused mindfulness session.
+  /// Android value: MINDFULNESS_SESSION_TYPE_BREATHING (2)
+  breathing,
+
+  /// Music-assisted mindfulness session.
+  /// Android value: MINDFULNESS_SESSION_TYPE_MUSIC (3)
+  music,
+
+  /// Movement-oriented mindfulness session.
+  /// Android value: MINDFULNESS_SESSION_TYPE_MOVEMENT (4)
+  movement,
+
+  /// Mindfulness session without guided support.
+  /// Android value: MINDFULNESS_SESSION_TYPE_UNGUIDED (5)
+  unguided,
 }
 
 /// List of data types available on iOS.
@@ -255,6 +282,7 @@ const List<HealthDataType> dataTypeKeysAndroid = [
   HealthDataType.SLEEP_SESSION,
   HealthDataType.SLEEP_UNKNOWN,
   HealthDataType.WATER,
+  HealthDataType.MINDFULNESS,
   HealthDataType.WORKOUT,
   HealthDataType.RESTING_HEART_RATE,
   HealthDataType.FLIGHTS_CLIMBED,
@@ -587,13 +615,7 @@ enum HealthWorkoutActivityType {
   OTHER,
 }
 
-enum MealType {
-  BREAKFAST,
-  LUNCH,
-  DINNER,
-  SNACK,
-  UNKNOWN,
-}
+enum MealType { BREAKFAST, LUNCH, DINNER, SNACK, UNKNOWN }
 
 /// Classifications for ECG readings.
 enum ElectrocardiogramClassification {
@@ -608,23 +630,19 @@ enum ElectrocardiogramClassification {
 }
 
 /// Types of insulin delivery reason
-enum InsulinDeliveryReason {
-  NOT_SET,
-  BASAL,
-  BOLUS,
-}
+enum InsulinDeliveryReason { NOT_SET, BASAL, BOLUS }
 
 /// Extension to assign numbers to [ElectrocardiogramClassification]s
 extension ElectrocardiogramClassificationValue
     on ElectrocardiogramClassification {
   int get value => switch (this) {
-        ElectrocardiogramClassification.NOT_SET => 0,
-        ElectrocardiogramClassification.SINUS_RHYTHM => 1,
-        ElectrocardiogramClassification.ATRIAL_FIBRILLATION => 2,
-        ElectrocardiogramClassification.INCONCLUSIVE_LOW_HEART_RATE => 3,
-        ElectrocardiogramClassification.INCONCLUSIVE_HIGH_HEART_RATE => 4,
-        ElectrocardiogramClassification.INCONCLUSIVE_POOR_READING => 5,
-        ElectrocardiogramClassification.INCONCLUSIVE_OTHER => 6,
-        ElectrocardiogramClassification.UNRECOGNIZED => 100,
-      };
+    ElectrocardiogramClassification.NOT_SET => 0,
+    ElectrocardiogramClassification.SINUS_RHYTHM => 1,
+    ElectrocardiogramClassification.ATRIAL_FIBRILLATION => 2,
+    ElectrocardiogramClassification.INCONCLUSIVE_LOW_HEART_RATE => 3,
+    ElectrocardiogramClassification.INCONCLUSIVE_HIGH_HEART_RATE => 4,
+    ElectrocardiogramClassification.INCONCLUSIVE_POOR_READING => 5,
+    ElectrocardiogramClassification.INCONCLUSIVE_OTHER => 6,
+    ElectrocardiogramClassification.UNRECOGNIZED => 100,
+  };
 }

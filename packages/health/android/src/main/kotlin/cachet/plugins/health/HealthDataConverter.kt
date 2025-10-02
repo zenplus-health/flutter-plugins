@@ -2,6 +2,7 @@ package cachet.plugins.health
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import androidx.health.connect.client.feature.ExperimentalMindfulnessSessionApi
 import androidx.health.connect.client.records.*
 import androidx.health.connect.client.records.metadata.Metadata
 
@@ -21,6 +22,7 @@ class HealthDataConverter {
      * @return List<Map<String, Any?>> List of converted records (some records may split into multiple entries)
      * @throws IllegalArgumentException If the record type is not supported
      */
+    @OptIn(ExperimentalMindfulnessSessionApi::class)
     fun convertRecord(record: Any, dataType: String, dataUnit: String? = null): List<Map<String, Any?>> {
         val metadata = (record as Record).metadata
         
@@ -88,6 +90,19 @@ class HealthDataConverter {
                     record.endTime,
                     ChronoUnit.MINUTES.between(record.startTime, record.endTime)
                 )
+            )
+
+            is MindfulnessSessionRecord -> listOf(
+                createIntervalRecord(
+                        metadata,
+                        record.startTime,
+                        record.endTime,
+                        ChronoUnit.MINUTES.between(record.startTime, record.endTime)
+                ).toMutableMap().apply {
+                    put("mindfulness_session_type", record.mindfulnessSessionType)
+                    put("title", record.title)
+                    put("notes", record.notes)
+                }
             )
             
             is MenstruationFlowRecord -> listOf(

@@ -37,6 +37,7 @@ object HealthConstants {
     const val WEIGHT = "WEIGHT"
     const val TOTAL_CALORIES_BURNED = "TOTAL_CALORIES_BURNED"
     const val SPEED = "SPEED"
+    const val MINDFULNESS = "MINDFULNESS"
 
     // Meal types
     const val BREAKFAST = "BREAKFAST"
@@ -60,6 +61,15 @@ object HealthConstants {
 
     // Activity type
     const val WORKOUT = "WORKOUT"
+
+    // Mindfulness session types (Android Health Connect)
+    // These align with MindfulnessSessionRecord.MINDFULNESS_SESSION_TYPE_* constants
+    const val MINDFULNESS_SESSION_TYPE_UNKNOWN = 0
+    const val MINDFULNESS_SESSION_TYPE_MEDITATION = 1
+    const val MINDFULNESS_SESSION_TYPE_BREATHING = 2
+    const val MINDFULNESS_SESSION_TYPE_MUSIC = 3
+    const val MINDFULNESS_SESSION_TYPE_MOVEMENT = 4
+    const val MINDFULNESS_SESSION_TYPE_UNGUIDED = 5
 
     /**
      * Maps Flutter health data type strings to their corresponding Health Connect Record classes.
@@ -85,6 +95,7 @@ object HealthConstants {
         HEART_RATE_VARIABILITY_RMSSD to HeartRateVariabilityRmssdRecord::class,
         DISTANCE_DELTA to DistanceRecord::class,
         WATER to HydrationRecord::class,
+        MINDFULNESS to MindfulnessSessionRecord::class,
         SLEEP_ASLEEP to SleepSessionRecord::class,
         SLEEP_AWAKE to SleepSessionRecord::class,
         SLEEP_AWAKE_IN_BED to SleepSessionRecord::class,

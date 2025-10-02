@@ -1,3 +1,10 @@
+## [Unreleased] - Mindfulness Support Branch
+
+* Add `MindfulnessSessionType` enum and `Health.writeMindfulnessSession()` API
+* Android: Write mindfulness sessions using native `MindfulnessSessionRecord`
+* Android: Expose mindfulness metadata when reading sessions and include new permissions mapping
+* Example app: demonstrate the new mindfulness writer
+
 ## 13.2.0
 
 * Add get health data by UUID (see `getHealthDataByUUID()`) - PR [#1193](https://github.com/carp-dk/flutter-plugins/pull/1193), [#1194](https://github.com/carp-dk/flutter-plugins/pull/1194)
