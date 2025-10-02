@@ -3,7 +3,6 @@ package cachet.plugins.health
 import android.util.Log
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.feature.ExperimentalMindfulnessSessionApi
-import androidx.health.connect.client.ExperimentalHealthConnectApi
 import androidx.health.connect.client.records.*
 import androidx.health.connect.client.records.metadata.Device
 import androidx.health.connect.client.records.metadata.Metadata
@@ -235,7 +234,6 @@ class HealthDataWriter(
      * Writes a mindfulness session using Health Connect's dedicated MindfulnessSessionRecord.
      * Ensures sessions are categorized correctly and supports metadata parity with other writers.
      */
-    @OptIn(ExperimentalMindfulnessSessionApi::class, ExperimentalHealthConnectApi::class)
     fun writeMindfulnessSession(call: MethodCall, result: Result) {
         val providedType =
                 call.argument<Int>("mindfulnessType")

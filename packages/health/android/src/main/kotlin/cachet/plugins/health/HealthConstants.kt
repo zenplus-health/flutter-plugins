@@ -3,7 +3,6 @@ package cachet.plugins.health
 import kotlin.reflect.KClass
 import androidx.health.connect.client.records.*
 import androidx.health.connect.client.records.MealType
-import androidx.health.connect.client.ExperimentalHealthConnectApi
 
 /**
  * Contains all data type mappings, health record classifications, and type conversions
@@ -78,7 +77,6 @@ object HealthConstants {
      * 
      * @return Map<String, KClass<out Record>> Mapping of type strings to Health Connect record classes
      */
-    @OptIn(ExperimentalHealthConnectApi::class)
     private val mindfulnessRecordClass = MindfulnessSessionRecord::class
 
     val mapToType: Map<String, KClass<out Record>> = hashMapOf(
